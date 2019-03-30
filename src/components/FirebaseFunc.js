@@ -1,7 +1,7 @@
 import * as firebase from 'firebase';
 
 export function initialize() {
-  if(firebase.apps.length === 0){
+  if (firebase.apps.length === 0) {
     var config = {
       apiKey: "AIzaSyAsO5hQ8gV9sC2rt-Qc1VbfLM-l8zNXOhg",
       authDomain: "mememaster-43ac1.firebaseapp.com",
@@ -11,39 +11,37 @@ export function initialize() {
       messagingSenderId: "396908932173"
     };
     firebase.initializeApp(config);
+
   }
+
 }
 
 // function that allows the user to create an account
-export function createUser(email,password){
+export function createUser(email, password) {
 
-  firebase.auth().createUserWithEmailAndPassword(email, password).then(function(){
+  firebase.auth().createUserWithEmailAndPassword(email, password).then(function() {
 
     window.location.replace("/meme");
-  }).catch(function(error){
+  }).catch(function(error) {
 
     let errorCode = error.code;
-    let errorMessage= error.message;
-    let alert = document.getElementById('alert');
-    alert.innerHTML = '<strong>'+errorMessage+'</strong>';
-    alert.style.visibility = 'visible';
+    let errorMessage = error.message;
+    alert(errorMessage);
 
   });
 }
 
 //Function that allows the user to log in
-export function LogIn(email,password){
+export function LogIn(email, password) {
 
-  firebase.auth().signInWithEmailAndPassword(email, password).then(function(){
+  firebase.auth().signInWithEmailAndPassword(email, password).then(function() {
     window.location.replace("/meme");
-  }).catch(function(error){
+  }).catch(function(error) {
 
     let errorCode = error.code;
     let errorMessage = error.message;
 
-    let alert = document.getElementById('alert');
-    alert.innerHTML = '<strong>'+ errorMessage +'</strong>';
-    alert.style.visibility = 'visible';
+    alert(errorMessage);
 
   });
 }
