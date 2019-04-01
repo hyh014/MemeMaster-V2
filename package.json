@@ -6,11 +6,9 @@
     "bootstrap": "^4.3.1",
     "braces": "^2.3.2",
     "firebase": "^5.8.6",
-    "konva": "^3.1.7",
     "react": "^16.8.4",
     "react-bootstrap": "^0.32.4",
     "react-dom": "^16.8.4",
-    "react-konva": "^16.8.4",
     "react-router-dom": "^4.3.1",
     "react-scripts": "^2.1.8"
   },

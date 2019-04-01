@@ -30,6 +30,8 @@ class Meme extends Component{
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleFile = this.handleFile.bind(this);
     this.changeText = this.changeText.bind(this);
+    this.handleMouseDown = this.handleMouseDown.bind(this);
+    this.handleMouseUp = this.handleMouseUp.bind(this);
 
   }
 
@@ -37,13 +39,16 @@ class Meme extends Component{
     if (file[0].type.match(/^image\//)) {
       let imageObj = new Image();
       let canvas = document.createElement('canvas');
+      canvas.width = 400;
+      canvas.height = 400;
       let ctx = canvas.getContext('2d');
       let svg = document.getElementById('svg');
       imageObj.onload = function(){
 
-        ctx.drawImage(imageObj,0,0);
+        ctx.drawImage(imageObj,0,0, imageObj.width, imageObj.height,
+                      0,0, canvas.width,canvas.height);
         sessionStorage.setItem('URL',canvas.toDataURL("image/png"));
-        console.log(canvas.toDataURL("image/png"));
+
 
       }
       imageObj.src = URL.createObjectURL(file[0]);
@@ -62,7 +67,67 @@ class Meme extends Component{
       [e.currentTarget.name]:e.currentTarget.value
     });
   }
+  getStateObj(e,type){
 
+    let rect = this.imageRef.getBoundingClientRect();
+
+    const xOffset = e.clientX - rect.left;
+    const yOffset = e.clientY - rect.top;
+
+    let stateObj = {};
+
+    if(type==='bottom'){
+
+      stateObj = {
+        botDraggable: true,
+        topDraggable: false,
+        botX: `${xOffset}px`,
+        botY: `${yOffset}px`
+      }
+    }else if(type==='top'){
+      stateObj = {
+        botDraggable: false,
+        topDraggable: true,
+        topX: `${xOffset}px`,
+        topY: `${yOffset}px`
+      }
+    }
+
+    return stateObj;
+  }
+  handleMouseDown(e,type){
+    const stateObj = this.getStateObj(e, type);
+
+    document.addEventListener('mousemove',(e) => this.handleMouseMove(e,type));
+    this.setState({
+      ...stateObj
+    });
+
+  }
+  handleMouseMove(e,type){
+
+    if(this.state.topDraggable || this.state.botDraggable){
+
+      let stateObj = {};
+      if(type === 'bottom' && this.state.botDraggable){
+        stateObj = this.getStateObj(e,type);
+
+      }else if(type === 'top' && this.state.topDraggable){
+        stateObj = this.getStateObj(e,type);
+
+      }
+      this.setState({
+        ...stateObj
+      });
+    }
+  }
+  handleMouseUp(e){
+    document.removeEventListener('mousemove',this.handleMouseMove);
+    this.setState({
+      topDraggable:false,
+      botDraggable:false
+    })
+  }
   render(){
     return(
       <div style={{textAlign:'center'}}>
@@ -77,20 +142,24 @@ class Meme extends Component{
             width={400}
             height={400}
             id="svg">
-            <circle cx="50" cy="50" r="40" stroke="green" stroke-width="4" fill="yellow" />
-              <image xlinkHref={this.state.currentImagebase64} width={400} height={400}/>
-              <text x={this.state.topX} y={this.state.topY}
+              <image ref={el => {this.imageRef = el }} xlinkHref={this.state.currentImagebase64} width={400} height={400}/>
+              <text
+              x={this.state.topX} y={this.state.topY}
               dominantBaseline='middle'
               textAnchor='middle'
               className='meme-text'
-              style={{fontSize:this.state.fontSize}}>
+              style={{fontSize:this.state.fontSize, zIndex: this.state.isTopDragging ? 4 : 1 }}
+              onMouseDown={(e) => this.handleMouseDown(e,'top')}
+              onMouseUp={(e) => this.handleMouseUp(e,'top')}>
                 {this.state.topText}
               </text>
               <text x={this.state.botX} y={this.state.botY}
               dominantBaseline='middle'
               textAnchor='middle'
               className='meme-text'
-              style={{fontSize:this.state.fontSize}}>
+              style={{fontSize:this.state.fontSize}}
+              onMouseDown={(e) => this.handleMouseDown(e,'bottom')}
+              onMouseUp={(e) => this.handleMouseUp(e,'bottom')}>
                 {this.state.botText}
               </text>
             </svg>
