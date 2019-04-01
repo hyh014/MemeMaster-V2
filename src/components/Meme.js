@@ -2,7 +2,7 @@ import React, { Component} from 'react';
 import {Button, Form, FormGroup, Label} from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './Meme.css';
-
+import * as Firebase from './FirebaseFunc';
 
 
 class Meme extends Component{
@@ -32,6 +32,7 @@ class Meme extends Component{
     this.changeText = this.changeText.bind(this);
     this.handleMouseDown = this.handleMouseDown.bind(this);
     this.handleMouseUp = this.handleMouseUp.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
 
   }
 
@@ -59,8 +60,22 @@ class Meme extends Component{
     }
 
   }
-  handleSubmit(event){
-    event.preventDefault();
+  handleSubmit(e){
+    e.preventDefault();
+    const svg = document.getElementById('svg');
+    let svgData = new XMLSerializer().serializeToString(svg);
+    const canvas = document.createElement('canvas');
+    const svgSize = svg.getBoundingClientRect();
+    canvas.width = svgSize.width;
+    canvas.height = svgSize.height;
+    const img = document.createElement('img');
+    img.setAttribute("src", "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData))));
+    img.onload = function(){
+      canvas.getContext('2d').drawImage(img,0,0);
+      let data = canvas.toDataURL('image/png');
+      Firebase.initialize();
+      Firebase.uploadMeme(sessionStorage.getItem('URL'),data);
+    }
   }
   changeText(e){
     this.setState({
@@ -169,19 +184,19 @@ class Meme extends Component{
               <input type="file" id="file-input" accept="images/*" onChange={(e) => {this.handleFile(e.target.files)}}/>
               <Form>
                 <FormGroup>
-                  <Label for="topText">Top Text:</Label>
+                  <Label htmlFor="topText">Top Text:</Label>
                   <input className="form-control" type='text' name='topText' id='topText' placeholder="Add Text" onChange={this.changeText}/>
                 </FormGroup>
                 <FormGroup>
-                  <Label for='botText'>Bottom Text:</Label>
+                  <Label htmlFor='botText'>Bottom Text:</Label>
                   <input className="form-control" type='text' name='botText' id='botText' placeholder="Add Text" onChange={this.changeText}/>
                 </FormGroup>
                 <FormGroup>
-                  <Label for="fontSize">Font Size:</Label>
+                  <Label htmlFor="fontSize">Font Size:</Label>
                   <input type='number' name="fontSize" placeholder='Font Size' min='1' max='100' defaultValue='50' onChange={this.changeText} />
                 </FormGroup>
                 <hr/>
-                <Button bsStyle='success' id='meme'>Generate Meme</Button>
+                <Button bsStyle='primary' id='meme' onClick={(e) => this.handleSubmit(e)}>Generate Meme</Button>
               </Form>
              </td>
            </tr>

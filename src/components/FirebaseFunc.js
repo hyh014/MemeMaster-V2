@@ -1,4 +1,5 @@
 import * as firebase from 'firebase';
+require('firebase/auth')
 
 export function initialize() {
   if (firebase.apps.length === 0) {
@@ -44,4 +45,22 @@ export function LogIn(email, password) {
     alert(errorMessage);
 
   });
+}
+
+export function uploadMeme(original, meme){
+  let currentDate = new Date();
+  let date = currentDate.getDate() +'/'
+            +(currentDate.getMonth()+1)+'/'
+            +currentDate.getFullYear()+'@'
+            +currentDate.getHours()+':'
+            +currentDate.getMinutes();
+  let memeObject = {
+    original:original,
+    meme:meme,
+    date:date
+  }
+  let database = firebase.database();
+  let user = firebase.auth().currentUser;
+  database.ref('user/'+user.uid).push(memeObject);
+  console.log(user.uid);
 }
