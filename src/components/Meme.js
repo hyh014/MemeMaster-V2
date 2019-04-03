@@ -3,6 +3,8 @@ import {Button, Form, FormGroup, Label} from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './Meme.css';
 import * as Firebase from './FirebaseFunc';
+import {MemeList} from './FirebaseFunc';
+
 
 
 class Meme extends Component{
@@ -73,7 +75,6 @@ class Meme extends Component{
     img.onload = function(){
       canvas.getContext('2d').drawImage(img,0,0);
       let data = canvas.toDataURL('image/png');
-      Firebase.initialize();
       Firebase.uploadMeme(sessionStorage.getItem('URL'),data);
     }
   }
@@ -202,6 +203,11 @@ class Meme extends Component{
            </tr>
          </tbody>
         </table>
+        <hr/>
+        <div>
+        <h2>Previously Generated Memes</h2>
+          <MemeList></MemeList>
+        </div>
       </div>
     )
   }

@@ -1,4 +1,5 @@
 import * as firebase from 'firebase';
+import React, { Component} from 'react';
 require('firebase/auth')
 
 export function initialize() {
@@ -60,7 +61,53 @@ export function uploadMeme(original, meme){
     date:date
   }
   let database = firebase.database();
-  let user = firebase.auth().currentUser;
-  database.ref('user/'+user.uid).push(memeObject);
-  console.log(user.uid);
+  firebase.auth().onAuthStateChanged(function(user){
+    if(user){
+
+      database.ref('user/'+user.uid).push(memeObject);
+    }
+  });
+
+}
+
+export class MemeList extends Component{
+  constructor(props){
+    super(props);
+    this.state = {
+      memes: []
+    }
+  }
+  componentDidMount(){
+    initialize();
+    let database = firebase.database();
+    let temp = this;
+    firebase.auth().onAuthStateChanged(function(user){
+      if(user){
+        database.ref('user/'+user.uid).once('value').then(function(snapshot){
+          let memeObject = snapshot.val();
+          memeObject = Object.keys(memeObject).map(key => ({
+            ...memeObject[key],
+            uid:key
+          }));
+          temp.setState({
+            memes:memeObject
+          })
+
+        })
+      }
+    });
+
+  }
+  render(){
+    return (
+      <div>
+        {this.state.memes.map((item,i) => (
+          <div key={item.uid}>
+            <img src={item.meme}/>
+          </div>
+        ))}
+      </div>
+
+    );
+  }
 }
