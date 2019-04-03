@@ -76,6 +76,15 @@ export class MemeList extends Component{
     this.state = {
       memes: []
     }
+    this.removeMeme = this.removeMeme.bind(this);
+  }
+  convertSnapshot(snapshot){
+    let memeObject = snapshot.val();
+    memeObject = Object.keys(memeObject).map(key => ({
+      ...memeObject[key],
+      uid:key
+    }));
+    return memeObject;
   }
   componentDidMount(){
     initialize();
@@ -84,26 +93,47 @@ export class MemeList extends Component{
     firebase.auth().onAuthStateChanged(function(user){
       if(user){
         database.ref('user/'+user.uid).once('value').then(function(snapshot){
-          let memeObject = snapshot.val();
-          memeObject = Object.keys(memeObject).map(key => ({
-            ...memeObject[key],
-            uid:key
-          }));
+          memeObject = convertSnapshot(snapshot);
           temp.setState({
             memes:memeObject
           })
 
-        })
+        });
+        database.ref('user/'+user.uid).on('child-added',function(snapshot){
+          let newChild = snapshot.val();
+          let previous = temp.state.memes;
+          let newList = [];
+          newChild = convertSnapshot(snapshot);
+          newList = newChild + previous;
+          newList.reverse();
+          temp.setState({
+            memes:newList
+          });
+        });
+
       }
     });
 
   }
+
+  removeMeme(uid){
+
+    let c = confirm("Do You Want To Delete This Meme?");
+    if(c){
+      this.setState({
+        memes:this.state.memes.filter( (meme) => meme.uid != uid)
+      });
+    }
+  }
+
   render(){
     return (
       <div>
         {this.state.memes.map((item,i) => (
           <div key={item.uid}>
             <img src={item.meme}/>
+            <Button bsStyle='primary' id='download' >Download Meme</Button>
+            <Button bsStyle='warning' id='delete' onClick={this.removeMeme(item.uid)}>Delete Meme</Button>
           </div>
         ))}
       </div>
