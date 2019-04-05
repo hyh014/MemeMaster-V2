@@ -1,5 +1,6 @@
 import * as firebase from 'firebase';
 import React, { Component} from 'react';
+import {Button} from 'react-bootstrap';
 require('firebase/auth')
 
 export function initialize() {
@@ -77,15 +78,9 @@ export class MemeList extends Component{
       memes: []
     }
     this.removeMeme = this.removeMeme.bind(this);
+    this.downloadMeme = this.downloadMeme.bind(this);
   }
-  convertSnapshot(snapshot){
-    let memeObject = snapshot.val();
-    memeObject = Object.keys(memeObject).map(key => ({
-      ...memeObject[key],
-      uid:key
-    }));
-    return memeObject;
-  }
+
   componentDidMount(){
     initialize();
     let database = firebase.database();
@@ -93,17 +88,25 @@ export class MemeList extends Component{
     firebase.auth().onAuthStateChanged(function(user){
       if(user){
         database.ref('user/'+user.uid).once('value').then(function(snapshot){
-          memeObject = convertSnapshot(snapshot);
+          let memeObject = snapshot.val();
+          memeObject = Object.keys(memeObject).map(key => ({
+            ...memeObject[key],
+            uid:key
+          }));
           temp.setState({
             memes:memeObject
           })
 
         });
-        database.ref('user/'+user.uid).on('child-added',function(snapshot){
-          let newChild = snapshot.val();
+        database.ref('user/'+user.uid).orderByKey().limitToLast(1).on('child-added',function(snapshot){
           let previous = temp.state.memes;
           let newList = [];
-          newChild = convertSnapshot(snapshot);
+          let newChild = snapshot.val();
+          console.log('added');
+          newChild = Object.keys(newChild).map(key => ({
+            ...newChild[key],
+            uid:key
+          }));
           newList = newChild + previous;
           newList.reverse();
           temp.setState({
@@ -115,25 +118,42 @@ export class MemeList extends Component{
     });
 
   }
-
+  downloadMeme(uid){
+    console.log(uid);
+    let meme = this.state.memes.filter((meme) => meme.uid == uid);
+    console.log(meme[0]);
+    const a = document.createElement('a');
+    a.download = "meme.png";
+    a.href = meme[0].meme;
+    console.log(meme.meme);
+    document.body.appendChild(a);
+    a.click();
+  }
   removeMeme(uid){
-
-    let c = confirm("Do You Want To Delete This Meme?");
+    let database = firebase.database();
+    let c = window.confirm("Do You Want To Delete This Meme?");
     if(c){
       this.setState({
         memes:this.state.memes.filter( (meme) => meme.uid != uid)
       });
-    }
+      firebase.auth().onAuthStateChanged(function(user){
+        if(user){
+      database.ref('user/'+user.uid).child(uid).remove();
+      }
+    });
   }
+}
 
   render(){
     return (
       <div>
         {this.state.memes.map((item,i) => (
           <div key={item.uid}>
+          <div>
             <img src={item.meme}/>
-            <Button bsStyle='primary' id='download' >Download Meme</Button>
-            <Button bsStyle='warning' id='delete' onClick={this.removeMeme(item.uid)}>Delete Meme</Button>
+            </div>
+            <Button bsStyle='primary' id='download' onClick={(e) => this.downloadMeme(item.uid)}>Download Meme</Button>
+            <Button bsStyle='warning' id='delete' onClick={(e) => this.removeMeme(item.uid)}>Delete Meme</Button>
           </div>
         ))}
       </div>
