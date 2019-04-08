@@ -6,12 +6,12 @@ require('firebase/auth')
 export function initialize() {
   if (firebase.apps.length === 0) {
     var config = {
-      apiKey: "AIzaSyAsO5hQ8gV9sC2rt-Qc1VbfLM-l8zNXOhg",
-      authDomain: "mememaster-43ac1.firebaseapp.com",
-      databaseURL: "https://mememaster-43ac1.firebaseio.com",
-      projectId: "mememaster-43ac1",
-      storageBucket: "mememaster-43ac1.appspot.com",
-      messagingSenderId: "396908932173"
+      apiKey: REACT_APP_APIKEY,
+      authDomain: REACT_APP_AUTHDOMAIN,
+      databaseURL: REACT_APP_DATABASEURL,
+      projectId: REACT_APP_PROJECTID,
+      storageBucket: REACT_APP_STORAGEBUCKET,
+      messagingSenderId: REACT_APP_MESSAGINGSENDERID
     };
     firebase.initializeApp(config);
 
